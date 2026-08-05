@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DE3B0D74-650E-4573-A3F0-03D9E6F3F162}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.Domain", "src\Domain\KartAdminService.Domain.csproj", "{297602F1-C578-46E6-8A05-866E594B8631}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.Application", "src\Application\KartAdminService.Application.csproj", "{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.Infrastructure", "src\Infrastructure\KartAdminService.Infrastructure.csproj", "{5172BDB1-57EC-4775-BDA7-A4F2021DA663}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.Api", "src\Api\KartAdminService.Api.csproj", "{35AE5489-B6C7-4879-9F25-843650850901}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6EE3598C-A181-4FD2-833D-4F44D732B6D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.UnitTests", "tests\UnitTests\KartAdminService.UnitTests.csproj", "{49E68689-1A2B-4B2E-80BA-030D5CA23157}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.IntegrationTests", "tests\IntegrationTests\KartAdminService.IntegrationTests.csproj", "{CB585F2D-2A25-4748-A4C0-913A6121DFF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KartAdminService.ContractTests", "tests\ContractTests\KartAdminService.ContractTests.csproj", "{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contracts", "contracts", "{9A1B2C3D-4E5F-4061-8A7B-1C2D3E4F5061}"
+	ProjectSection(SolutionItems) = preProject
+		contracts\README.md = contracts\README.md
+		contracts\api-contract.yaml = contracts\api-contract.yaml
+		contracts\message-bus-manifest.json = contracts\message-bus-manifest.json
+		contracts\event-contract.md = contracts\event-contract.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{297602F1-C578-46E6-8A05-866E594B8631}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{297602F1-C578-46E6-8A05-866E594B8631}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{297602F1-C578-46E6-8A05-866E594B8631}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{297602F1-C578-46E6-8A05-866E594B8631}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5172BDB1-57EC-4775-BDA7-A4F2021DA663}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5172BDB1-57EC-4775-BDA7-A4F2021DA663}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5172BDB1-57EC-4775-BDA7-A4F2021DA663}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5172BDB1-57EC-4775-BDA7-A4F2021DA663}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35AE5489-B6C7-4879-9F25-843650850901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35AE5489-B6C7-4879-9F25-843650850901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35AE5489-B6C7-4879-9F25-843650850901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35AE5489-B6C7-4879-9F25-843650850901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49E68689-1A2B-4B2E-80BA-030D5CA23157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49E68689-1A2B-4B2E-80BA-030D5CA23157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49E68689-1A2B-4B2E-80BA-030D5CA23157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49E68689-1A2B-4B2E-80BA-030D5CA23157}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB585F2D-2A25-4748-A4C0-913A6121DFF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB585F2D-2A25-4748-A4C0-913A6121DFF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB585F2D-2A25-4748-A4C0-913A6121DFF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB585F2D-2A25-4748-A4C0-913A6121DFF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{297602F1-C578-46E6-8A05-866E594B8631} = {DE3B0D74-650E-4573-A3F0-03D9E6F3F162}
+		{8E68C5B2-2A42-4CC5-9E98-BC3B288EF123} = {DE3B0D74-650E-4573-A3F0-03D9E6F3F162}
+		{5172BDB1-57EC-4775-BDA7-A4F2021DA663} = {DE3B0D74-650E-4573-A3F0-03D9E6F3F162}
+		{35AE5489-B6C7-4879-9F25-843650850901} = {DE3B0D74-650E-4573-A3F0-03D9E6F3F162}
+		{49E68689-1A2B-4B2E-80BA-030D5CA23157} = {6EE3598C-A181-4FD2-833D-4F44D732B6D1}
+		{CB585F2D-2A25-4748-A4C0-913A6121DFF9} = {6EE3598C-A181-4FD2-833D-4F44D732B6D1}
+		{1B85E4E3-A0EA-4B46-B841-9FA3198F9CED} = {6EE3598C-A181-4FD2-833D-4F44D732B6D1}
+	EndGlobalSection
+EndGlobal

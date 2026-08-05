@@ -1,0 +1,43 @@
+namespace KartAdminService.Domain.Common;
+
+/// <summary>
+/// The five fixed categories requirement-spec.md §6 Decision item 1 and database-design.md's
+/// CHECK constraint define — four business categories plus the `permission-management`
+/// meta-category that governs granting/revoking the other four. Shared value object used by
+/// both aggregates (ddd-model.md Modeling Decision #2) so there is exactly one definition of
+/// "what a category is," not two independently-drifting ones. This is a closed value set —
+/// extending it requires a new requirement-spec decision, not a code-level enum add
+/// (requirement-spec.md §6 Decision item 1's own accepted trade-off).
+/// </summary>
+public enum PermissionCategory
+{
+    CatalogManagement,
+    CouponIssuance,
+    UserSuspension,
+    InventoryReplenishment,
+    PermissionManagement,
+}
+
+public static class PermissionCategoryExtensions
+{
+    /// <summary>Db/wire representation — kebab-case, matching database-design.md's CHECK constraint literals and api-contract.yaml's GrantCategory enum.</summary>
+    public static string ToWireValue(this PermissionCategory category) => category switch
+    {
+        PermissionCategory.CatalogManagement => "catalog-management",
+        PermissionCategory.CouponIssuance => "coupon-issuance",
+        PermissionCategory.UserSuspension => "user-suspension",
+        PermissionCategory.InventoryReplenishment => "inventory-replenishment",
+        PermissionCategory.PermissionManagement => "permission-management",
+        _ => throw new ArgumentOutOfRangeException(nameof(category), category, "Unknown permission category."),
+    };
+
+    public static PermissionCategory ParseWireValue(string value) => value switch
+    {
+        "catalog-management" => PermissionCategory.CatalogManagement,
+        "coupon-issuance" => PermissionCategory.CouponIssuance,
+        "user-suspension" => PermissionCategory.UserSuspension,
+        "inventory-replenishment" => PermissionCategory.InventoryReplenishment,
+        "permission-management" => PermissionCategory.PermissionManagement,
+        _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown permission category."),
+    };
+}

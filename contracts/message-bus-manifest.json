@@ -1,0 +1,13 @@
+{
+  "service": "kart-admin-service",
+  "exchanges": [
+    { "name": "admin.exchange", "type": "topic", "durable": true }
+  ],
+  "externalExchanges": [],
+  "publishedEvents": [
+    { "eventType": "AdminActionPerformed", "exchange": "admin.exchange", "routingKey": "admin.admin-action.performed" }
+  ],
+  "queues": [],
+  "deadLetterQueues": [],
+  "_comment": "Admin publishes AdminActionPerformed (fire-and-forget, 1x retry, own DLQ per event-contract.md) onto admin.exchange; it consumes no events — admin-triggered actions on other services (e.g. Identity suspension) are synchronous REST calls, not event consumption. Analytics binds its own queue (with its own DLQ) to admin.exchange — that queue/DLQ pair is declared by Analytics' own manifest, not this one, since Admin owns no consumer queue of its own. Schema corrected from the upstream kart-platform copy (service/exchange/dlx/queues/dlqs/retry), which does not match Kart.Shared.Messaging.MessageBusManifest's actual deserialization shape (service/exchanges[]/externalExchanges[]/publishedEvents[]/queues[]/deadLetterQueues[], confirmed against kart-identity-service's and kart-category-service's own working manifests) — flagged as a correction to carry back upstream, not a local-only deviation."
+}

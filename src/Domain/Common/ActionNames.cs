@@ -1,0 +1,26 @@
+namespace KartAdminService.Domain.Common;
+
+/// <summary>
+/// The specific operation names within a category (database-design.md's admin_actions.action
+/// column comment) — the AdminActionPerformed event's own `action` payload field. Named
+/// constants per coding-standards.md ("no magic numbers/strings — name the constant, even if
+/// only used once, when the value's meaning isn't obvious from context") rather than inline
+/// string literals scattered across 16 feature handlers.
+/// </summary>
+public static class ActionNames
+{
+    public const string GrantIssue = "grant.issue";
+    public const string GrantRevoke = "grant.revoke";
+    public const string ProductCreate = "product.create";
+    public const string ProductUpdate = "product.update";
+    public const string ProductDeactivate = "product.deactivate";
+    public const string CategoryCreate = "category.create";
+    public const string CategoryUpdate = "category.update";
+    public const string CategoryReorder = "category.reorder";
+    public const string CategoryMove = "category.move";
+    public const string CouponCreate = "coupon.create";
+    public const string CouponDeactivate = "coupon.deactivate";
+    public const string UserLock = "user.lock";
+    public const string UserUnlock = "user.unlock";
+    public const string InventoryReplenish = "inventory.replenish";
+}

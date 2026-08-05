@@ -1,0 +1,69 @@
+using KartAdminService.Api.Common;
+using KartAdminService.Api.Security;
+using KartAdminService.Application.Common.Models;
+using KartAdminService.Application.Features.CreateProduct;
+using KartAdminService.Application.Features.DeactivateProduct;
+using KartAdminService.Application.Features.UpdateProduct;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace KartAdminService.Api.Controllers;
+
+/// <summary>api-contract.yaml /admin/products* (ADM-4, ADM-5, ADM-6) — catalog-management category, proxies Product Service's own write API.</summary>
+[ApiController]
+[Route("v1/admin/products")]
+[Authorize(Policy = AuthenticationExtensions.AdminPolicy)]
+public sealed class ProductsController : AdminControllerBase
+{
+    private readonly ISender _sender;
+
+    public ProductsController(ISender sender)
+    {
+        _sender = sender;
+    }
+
+    [HttpPost]
+    [ProducesResponseType(typeof(AdminActionResultDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<AdminActionResultDto>> CreateProduct(
+        [FromBody] ProductWriteRequest product,
+        [FromHeader(Name = "Idempotency-Key")] Guid idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new CreateProductCommand(ActingPrincipalId, product, idempotencyKey), cancellationToken);
+        return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
+    }
+
+    [HttpPut("{productId}")]
+    [ProducesResponseType(typeof(AdminActionResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<AdminActionResultDto>> UpdateProduct(
+        [FromRoute] string productId,
+        [FromBody] ProductWriteRequest product,
+        [FromHeader(Name = "If-Match")] string ifMatch,
+        [FromHeader(Name = "Idempotency-Key")] Guid idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new UpdateProductCommand(ActingPrincipalId, productId, product, ifMatch, idempotencyKey), cancellationToken);
+        return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
+    }
+
+    [HttpPost("{productId}/deactivate")]
+    [ProducesResponseType(typeof(AdminActionResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+    public async Task<ActionResult<AdminActionResultDto>> DeactivateProduct(
+        [FromRoute] string productId,
+        [FromHeader(Name = "Idempotency-Key")] Guid idempotencyKey,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new DeactivateProductCommand(ActingPrincipalId, productId, idempotencyKey), cancellationToken);
+        return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
+    }
+}
