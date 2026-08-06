@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -24,7 +25,7 @@ public static class AuthenticationExtensions
         services.AddHttpClient<JwksSigningKeyResolver>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer();
+            .AddJwtBearer(SetJwtBearerOptions);
 
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<JwksSigningKeyResolver>((options, resolver) =>
@@ -45,5 +46,36 @@ public static class AuthenticationExtensions
             .AddPolicy(AdminPolicy, policy => policy.RequireClaim(RolesClaimType, AdminRoleValue));
 
         return services;
+    }
+    
+    private static void SetJwtBearerOptions(JwtBearerOptions options)
+    {
+        // IMPORTANT: Disable claim type mapping on the handler itself
+        // This helps to keep JWT claim names (like "sub") unchanged instead of converting to long XML URIs
+        // Like "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" instead of "sub"
+        options.MapInboundClaims = false;
+        
+
+        // Optional: Add events for debugging
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                // <--For debugging what is getting inside the claims in Authorize attribute 
+                Console.WriteLine("Token validated successfully");
+                var claims = context?.Principal?.Claims.ToList();
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine($"OnChallenge: {context.Error}, {context.ErrorDescription}");
+                return Task.CompletedTask;
+            }
+        };
     }
 }
