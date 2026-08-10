@@ -33,7 +33,11 @@ public sealed class CategoryServiceClient : ICategoryServiceClient
 
     public Task<Result> UpdateCategoryAsync(string categoryId, CategoryWriteRequest request, string ifMatch, string idempotencyKey, CancellationToken cancellationToken) =>
         DownstreamCallResultMapper.ExecuteAsync(
-            () => SendAsync(HttpMethod.Put, $"/v1/categories/{categoryId}", request, idempotencyKey, ifMatch),
+            // Category Service's own contract only maps PATCH /v1/categories/{categoryId} for a
+            // rename (CategoriesController.cs's RenameCategory action) — PUT was never a real
+            // route there, and would 405 (masked as a generic downstream_error/500) rather than
+            // ever reach the handler this call is meant to invoke.
+            () => SendAsync(HttpMethod.Patch, $"/v1/categories/{categoryId}", request, idempotencyKey, ifMatch),
             "Category Service",
             cancellationToken);
 

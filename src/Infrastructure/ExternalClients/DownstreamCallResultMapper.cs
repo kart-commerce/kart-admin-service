@@ -48,6 +48,21 @@ public static class DownstreamCallResultMapper
                 // check for) — that's client-fixable, not a 500; ResultExtensions.StatusCodeFor
                 // maps "validation_error" to 400 the same way a local FluentValidation failure does.
                 HttpStatusCode.BadRequest => Result.Failure<TSuccess>(Error.Validation($"{serviceName} rejected the request as invalid.")),
+                // A downstream 401/403 means the owning service rejected *this service's own*
+                // service-principal credentials/claims — never the end user's fault, since callers
+                // never reach here without already having passed AdminActionExecutor's own
+                // fine-grained grant check (permission_denied) against the *caller's* grant.
+                // Surfacing this distinctly (instead of falling into the generic "unexpected N
+                // response" bucket below, which ResultExtensions.StatusCodeFor defaults to a bare
+                // 500) is what actually lets an operator tell "our service-principal's roles/scope
+                // claim or JWKS trust is misconfigured against {serviceName}" apart from every
+                // other kind of downstream failure.
+                HttpStatusCode.Unauthorized => Result.Failure<TSuccess>(Error.Custom(
+                    "downstream_unauthorized",
+                    $"{serviceName} rejected this service's own credentials as unauthenticated — check its service-principal token/signing-key trust.")),
+                HttpStatusCode.Forbidden => Result.Failure<TSuccess>(Error.Custom(
+                    "downstream_forbidden",
+                    $"{serviceName} rejected this service's own credentials as unauthorized for this operation — check its service-principal's role/scope claims against {serviceName}'s policy.")),
                 _ => Result.Failure<TSuccess>(Error.Custom("downstream_error", $"{serviceName} returned an unexpected {(int)response.StatusCode} response.")),
             };
         }
