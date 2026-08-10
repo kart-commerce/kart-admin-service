@@ -11,5 +11,9 @@ public sealed class CreateProductCommandValidator : AbstractValidator<CreateProd
         RuleFor(x => x.Product.CategoryId).NotEmpty();
         RuleFor(x => x.Product.Price.Amount).GreaterThan(0);
         RuleFor(x => x.Product.Price.Currency).NotEmpty();
+        // Product Service's own contract requires `sku` on create (POST /v1/product-groups) -
+        // this was previously unchecked here, so a missing SKU passed Admin's own validation and
+        // only failed downstream, at Product Service.
+        RuleFor(x => x.Product.Sku).NotEmpty();
     }
 }

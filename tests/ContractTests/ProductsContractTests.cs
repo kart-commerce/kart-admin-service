@@ -26,7 +26,7 @@ public sealed class ProductsContractTests : IClassFixture<AdminContractTestFacto
         client.DefaultRequestHeaders.Add(TestAuthenticationHandler.RolesHeader, "admin");
         client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
-        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", price = new { amount = 9.99, currency = "USD" } });
+        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", sku = "widget-sku-1", price = new { amount = 9.99, currency = "USD" } });
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var body = await response.Content.ReadFromJsonAsync<ActionBody>();
@@ -42,7 +42,7 @@ public sealed class ProductsContractTests : IClassFixture<AdminContractTestFacto
         client.DefaultRequestHeaders.Add(TestAuthenticationHandler.RolesHeader, "admin");
         client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
-        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", price = new { amount = 9.99, currency = "USD" } });
+        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", sku = "widget-sku-1", price = new { amount = 9.99, currency = "USD" } });
 
         response.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
     }
@@ -82,7 +82,7 @@ public sealed class ProductsContractTests : IClassFixture<AdminContractTestFacto
         client.DefaultRequestHeaders.Add("X-Test-Sub", "unprivileged");
         client.DefaultRequestHeaders.Add("Idempotency-Key", Guid.NewGuid().ToString());
 
-        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", price = new { amount = 9.99, currency = "USD" } });
+        var response = await client.PostAsJsonAsync("/v1/admin/products", new { name = "Widget", categoryId = "cat-1", sku = "widget-sku-1", price = new { amount = 9.99, currency = "USD" } });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

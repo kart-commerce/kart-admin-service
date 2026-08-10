@@ -66,23 +66,33 @@ public static class DependencyInjection
         services.Configure<DownstreamServiceOptions>(configuration.GetSection(DownstreamServiceOptions.SectionName));
         services.Configure<IdentityClientCredentialsOptions>(configuration.GetSection(IdentityClientCredentialsOptions.SectionName));
 
+        // Owning-service write calls all need this service's own client-credentials token
+        // attached (see ServicePrincipalAuthHandler's doc comment) - added before the resilience
+        // policy handler so the token is fetched/attached once per outbound call, with Polly's
+        // retries operating on the already-authorized HttpRequestMessage.
+        services.AddTransient<ServicePrincipalAuthHandler>();
+
         services.AddHttpClient<IProductServiceClient, ProductServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Product))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Product.TimeoutMilliseconds)));
 
         services.AddHttpClient<ICategoryServiceClient, CategoryServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category.TimeoutMilliseconds)));
 
         services.AddHttpClient<IOfferServiceClient, OfferServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Offer))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Offer.TimeoutMilliseconds)));
 
         services.AddHttpClient<IInventoryServiceClient, InventoryServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Inventory))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Inventory.TimeoutMilliseconds)));
 

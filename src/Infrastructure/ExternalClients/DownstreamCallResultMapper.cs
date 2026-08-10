@@ -43,6 +43,11 @@ public static class DownstreamCallResultMapper
                 HttpStatusCode.NotFound => Result.Failure<TSuccess>(Error.NotFound($"{serviceName} reported the entity was not found.")),
                 HttpStatusCode.Conflict => Result.Failure<TSuccess>(Error.Conflict($"{serviceName} rejected the write due to a conflicting/stale version.")),
                 HttpStatusCode.ServiceUnavailable => Result.Failure<TSuccess>(Error.Custom("downstream_unavailable", $"{serviceName} is unavailable — no write happened.")),
+                // A downstream 400 means this service sent a request the owning service's own
+                // contract rejects (e.g. a missing required field our own validators don't yet
+                // check for) — that's client-fixable, not a 500; ResultExtensions.StatusCodeFor
+                // maps "validation_error" to 400 the same way a local FluentValidation failure does.
+                HttpStatusCode.BadRequest => Result.Failure<TSuccess>(Error.Validation($"{serviceName} rejected the request as invalid.")),
                 _ => Result.Failure<TSuccess>(Error.Custom("downstream_error", $"{serviceName} returned an unexpected {(int)response.StatusCode} response.")),
             };
         }
