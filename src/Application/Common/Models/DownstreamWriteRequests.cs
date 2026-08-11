@@ -5,8 +5,17 @@ namespace KartAdminService.Application.Common.Models;
 /// POST /products / PUT /products/{id} request shape (final shape is Product's own API Design
 /// Agent's job; this client is written against the documented contract and will need
 /// reconciling once that service ships its real endpoint — see api-contract.yaml's header note).
+///
+/// Price is nullable, not required: this one DTO is shared by both Create (Price required,
+/// enforced by CreateProductCommandValidator) and Update (Price never sent at all -
+/// ProductServiceClient.ToUpdateBody only forwards name/description/categoryId; price lives on
+/// Product's own Variant resource, PATCH /v1/products/{sku}, a call this DTO never makes).
+/// Previously non-nullable, which meant [ApiController]'s automatic model-binding validation
+/// rejected every PUT /admin/products/{id} request with "The Price field is required" before
+/// UpdateProductCommandValidator (which correctly never required it) ever ran - a real bug this
+/// session's end-to-end verification of the Update stage surfaced and fixed.
 /// </summary>
-public sealed record ProductWriteRequest(string Name, string? Description, string CategoryId, MoneyDto Price, string? Sku);
+public sealed record ProductWriteRequest(string Name, string? Description, string CategoryId, MoneyDto? Price, string? Sku);
 
 /// <summary>api-contract.yaml CategoryWriteRequest — best-effort mirror of Category Service's own write API.</summary>
 public sealed record CategoryWriteRequest(string Name, string? ParentId, int? DisplayOrder);

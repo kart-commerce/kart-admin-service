@@ -35,6 +35,17 @@ public sealed class AdminAction
     public DateTimeOffset? PublishedAt { get; private set; }
     public string? PublishedBy { get; private set; }
 
+    /// <summary>
+    /// The W3C <c>traceparent</c> of the admin request this row records (captured from
+    /// <c>Activity.Current</c> at <see cref="Record"/> time, inside the same HTTP request the
+    /// downstream owning-service call already completed under). The Outbox relay publishes this
+    /// row's <c>AdminActionPerformed</c> event from its own background poller loop, seconds
+    /// later and on an unrelated async context — without persisting this here, that publish
+    /// could not continue the original request's trace, breaking a Grafana TraceId search at
+    /// exactly the audit-outbox hop.
+    /// </summary>
+    public string? TraceParent { get; private set; }
+
     /// <summary>EF Core materialization only.</summary>
     private AdminAction()
     {
@@ -48,7 +59,8 @@ public sealed class AdminAction
         string action,
         string entityId,
         string? context,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        string? traceParent)
     {
         ActionId = actionId;
         IdempotencyKey = idempotencyKey;
@@ -58,6 +70,7 @@ public sealed class AdminAction
         EntityId = entityId;
         Context = context;
         PerformedAt = now;
+        TraceParent = traceParent;
     }
 
     /// <summary>
@@ -89,7 +102,7 @@ public sealed class AdminAction
             return Result.Failure<AdminAction>(Error.Validation("entityId is required."));
         }
 
-        return Result.Success(new AdminAction(Guid.NewGuid(), idempotencyKey, adminId.Trim(), category, action.Trim(), entityId.Trim(), context, now));
+        return Result.Success(new AdminAction(Guid.NewGuid(), idempotencyKey, adminId.Trim(), category, action.Trim(), entityId.Trim(), context, now, System.Diagnostics.Activity.Current?.Id));
     }
 
     /// <summary>

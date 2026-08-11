@@ -61,7 +61,9 @@ public sealed class ProductServiceClient : IProductServiceClient
         description = request.Description,
         categoryId = request.CategoryId,
         sku = request.Sku,
-        price = new { amount = request.Price.Amount, currency = request.Price.Currency },
+        // Null-forgiving: CreateProductCommandValidator.RuleFor(x => x.Product.Price).NotNull()
+        // already rejects a null Price before this client is ever called for a create.
+        price = new { amount = request.Price!.Amount, currency = request.Price.Currency },
     };
 
     // api-contract.yaml PATCH /v1/product-groups/{id} edits parent fields only - price lives on

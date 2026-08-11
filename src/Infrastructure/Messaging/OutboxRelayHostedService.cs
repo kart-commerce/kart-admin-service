@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Kart.Shared.Messaging;
+using Kart.Shared.Observability;
 using KartAdminService.Domain.Actions;
 using KartAdminService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,17 @@ public sealed class OutboxRelayHostedService : BackgroundService
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan ReconnectDelay = TimeSpan.FromSeconds(10);
     private const int BatchSize = 50;
+
+    // Only the three Product actions belong to the "Product Catalog Management (Admin)" flow
+    // this session instruments — other categories (coupons/users/inventory/permission-management,
+    // and Category's own admin actions) aren't tagged with a Flow yet, pending their own flow's
+    // instrumentation pass, per the platform-wide standard's per-flow rollout.
+    private static readonly HashSet<string> ProductCatalogManagementAdminActions =
+    [
+        KartAdminService.Domain.Common.ActionNames.ProductCreate,
+        KartAdminService.Domain.Common.ActionNames.ProductUpdate,
+        KartAdminService.Domain.Common.ActionNames.ProductDeactivate,
+    ];
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -64,7 +76,7 @@ public sealed class OutboxRelayHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Admin action outbox relay lost its RabbitMQ connection; reconnecting in {Delay}.", ReconnectDelay);
+                _logger.LogError(ex, "Stage {Stage}: admin action outbox relay lost its RabbitMQ connection; reconnecting in {Delay}.", "RabbitMqPublishRetryScheduled", ReconnectDelay);
                 await Task.Delay(ReconnectDelay, stoppingToken);
             }
         }
@@ -105,20 +117,37 @@ public sealed class OutboxRelayHostedService : BackgroundService
 
     private void PublishOne(IModel channel, AdminAction action)
     {
+        using var flowScope = ProductCatalogManagementAdminActions.Contains(action.Action)
+            ? KartFlowContext.Push("ProductCatalogManagementAdmin")
+            : null;
+
         var payload = new AdminActionPerformedPayload(action.AdminId, action.Action, action.EntityId);
         var body = JsonSerializer.SerializeToUtf8Bytes(payload, SerializerOptions);
+
+        var exchange = _manifest.ExchangeFor(AdminActionPerformedEventType);
+        var routingKey = _manifest.RoutingKeyFor(AdminActionPerformedEventType);
 
         var properties = channel.CreateBasicProperties();
         properties.Persistent = true;
         properties.MessageId = action.ActionId.ToString();
         properties.ContentType = "application/json";
 
+        using var activity = RabbitMqTraceContext.StartPublishActivityFromStoredTraceParent(exchange, routingKey, action.TraceParent, properties);
+
         channel.BasicPublish(
-            exchange: _manifest.ExchangeFor(AdminActionPerformedEventType),
-            routingKey: _manifest.RoutingKeyFor(AdminActionPerformedEventType),
+            exchange: exchange,
+            routingKey: routingKey,
             basicProperties: properties,
             body: body);
 
         action.MarkPublished(DateTimeOffset.UtcNow);
+
+        _logger.LogInformation(
+            "Stage {Stage}: admin action {ActionId} ({Action}) published to {Exchange}/{RoutingKey}",
+            "AdminOutboxEventPublished",
+            action.ActionId,
+            action.Action,
+            exchange,
+            routingKey);
     }
 }

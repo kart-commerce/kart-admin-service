@@ -31,6 +31,7 @@ public sealed class AdminActionConfiguration : IEntityTypeConfiguration<AdminAct
         builder.Property(a => a.PerformedAt).HasColumnName("performed_at").IsRequired();
         builder.Property(a => a.PublishedAt).HasColumnName("published_at");
         builder.Property(a => a.PublishedBy).HasColumnName("published_by");
+        builder.Property(a => a.TraceParent).HasColumnName("trace_parent");
 
         // Dedupe check before/while retrying an admin-action attempt (design-decisions.md,
         // "Idempotency Mechanism for Outbound Write Calls") — a retried attempt must never
