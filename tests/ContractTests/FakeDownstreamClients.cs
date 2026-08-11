@@ -12,12 +12,16 @@ namespace KartAdminService.ContractTests;
 public sealed class FakeProductServiceClient : IProductServiceClient
 {
     public Result<string> CreateResult { get; set; } = Result.Success("product-1");
+    public Result<string> GetProductGroupIdResult { get; set; } = Result.Success("product-group-1");
     public Result UpdateResult { get; set; } = Result.Success();
+    public Result UpdatePriceResult { get; set; } = Result.Success();
     public Result DeactivateResult { get; set; } = Result.Success();
 
     public Task<Result<string>> CreateProductAsync(ProductWriteRequest request, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(CreateResult);
-    public Task<Result> UpdateProductAsync(string productId, ProductWriteRequest request, string ifMatch, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdateResult);
-    public Task<Result> DeactivateProductAsync(string productId, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(DeactivateResult);
+    public Task<Result<string>> GetProductGroupIdAsync(string sku, CancellationToken cancellationToken) => Task.FromResult(GetProductGroupIdResult);
+    public Task<Result> UpdateProductAsync(string productGroupId, ProductWriteRequest request, string ifMatch, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdateResult);
+    public Task<Result> UpdatePriceAsync(string sku, MoneyDto price, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdatePriceResult);
+    public Task<Result> DeactivateProductAsync(string productGroupId, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(DeactivateResult);
 }
 
 public sealed class FakeCategoryServiceClient : ICategoryServiceClient
