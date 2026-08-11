@@ -27,6 +27,7 @@ public sealed class AdminContractTestFactory : WebApplicationFactory<Program>
     public FakeOfferServiceClient OfferClient { get; } = new();
     public FakeIdentityAdminClient IdentityClient { get; } = new();
     public FakeInventoryServiceClient InventoryClient { get; } = new();
+    public FakeOrderServiceClient OrderClient { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -62,6 +63,9 @@ public sealed class AdminContractTestFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IInventoryServiceClient>();
             services.AddSingleton<IInventoryServiceClient>(InventoryClient);
+
+            services.RemoveAll<IOrderServiceClient>();
+            services.AddSingleton<IOrderServiceClient>(OrderClient);
 
             // No real RabbitMQ/Postgres in the contract-test environment - these tests assert
             // HTTP shape, not event publication or persistence (covered separately).

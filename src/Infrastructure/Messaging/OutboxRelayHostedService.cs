@@ -44,6 +44,11 @@ public sealed class OutboxRelayHostedService : BackgroundService
         [KartAdminService.Domain.Common.ActionNames.AttributeCreate] = "CategoryAttributeManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.AttributeUpdate] = "CategoryAttributeManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.AttributeDeprecate] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.OrderCancel] = "OrderManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.OrderStatusUpdate] = "OrderManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.OrderShippingAddressUpdate] = "OrderManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.OrderShipmentRequest] = "OrderManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.OrderFulfillmentExceptionResolve] = "OrderManagementAdmin",
     };
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);

@@ -18,6 +18,9 @@ public sealed class DownstreamServiceOptions
     public ServiceEndpoint Identity { get; set; } = new();
     public ServiceEndpoint Inventory { get; set; } = new();
 
+    /// <summary>Order Management (Admin) flow #7. Order Service's admin-write handlers do a full transactional PG write (and, for the fulfillment-exception `cancel` action, a synchronous Payment refund call) — heavier than Category/Product's simple writes — so this endpoint's own appsettings entry overrides the 200ms default to 500ms rather than relying on the class default.</summary>
+    public ServiceEndpoint Order { get; set; } = new();
+
     public sealed class ServiceEndpoint
     {
         public string BaseUrl { get; set; } = string.Empty;

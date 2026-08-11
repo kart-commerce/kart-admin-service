@@ -12,7 +12,7 @@ public sealed class AdminActionConfiguration : IEntityTypeConfiguration<AdminAct
     {
         builder.ToTable("admin_actions", t => t.HasCheckConstraint(
             "ck_admin_actions_category",
-            "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management')"));
+            "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management','order-management')"));
 
         builder.HasKey(a => a.ActionId);
         builder.Property(a => a.ActionId).HasColumnName("action_id").HasDefaultValueSql("gen_random_uuid()").ValueGeneratedNever();

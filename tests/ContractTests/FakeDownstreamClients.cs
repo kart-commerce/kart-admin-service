@@ -72,3 +72,18 @@ public sealed class FakeInventoryServiceClient : IInventoryServiceClient
 
     public Task<Result> ReplenishAsync(string sku, string warehouseId, int qtyAdded, string? reason, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(ReplenishResult);
 }
+
+public sealed class FakeOrderServiceClient : IOrderServiceClient
+{
+    public Result CancelResult { get; set; } = Result.Success();
+    public Result UpdateStatusResult { get; set; } = Result.Success();
+    public Result UpdateShippingAddressResult { get; set; } = Result.Success();
+    public Result RequestShipmentResult { get; set; } = Result.Success();
+    public Result ResolveFulfillmentExceptionResult { get; set; } = Result.Success();
+
+    public Task<Result> CancelOrderAsync(Guid orderId, string? reason, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(CancelResult);
+    public Task<Result> UpdateStatusAsync(Guid orderId, string targetStatus, string reason, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdateStatusResult);
+    public Task<Result> UpdateShippingAddressAsync(Guid orderId, ShippingAddressWriteRequest address, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdateShippingAddressResult);
+    public Task<Result> RequestShipmentAsync(Guid orderId, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(RequestShipmentResult);
+    public Task<Result> ResolveFulfillmentExceptionAsync(Guid orderId, string action, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(ResolveFulfillmentExceptionResult);
+}

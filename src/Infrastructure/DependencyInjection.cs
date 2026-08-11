@@ -106,6 +106,12 @@ public static class DependencyInjection
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Inventory.TimeoutMilliseconds)));
 
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>((sp, client) =>
+            ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Order))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
+            .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
+                TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Order.TimeoutMilliseconds)));
+
         // Identity's client-credentials token endpoint gets its own plain HttpClient (no
         // Idempotency-Key semantics apply to a token fetch) plus the shared circuit breaker for
         // the actual lock/unlock calls.
