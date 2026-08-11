@@ -28,16 +28,23 @@ public sealed class OutboxRelayHostedService : BackgroundService
     private static readonly TimeSpan ReconnectDelay = TimeSpan.FromSeconds(10);
     private const int BatchSize = 50;
 
-    // Only the three Product actions belong to the "Product Catalog Management (Admin)" flow
-    // this session instruments — other categories (coupons/users/inventory/permission-management,
-    // and Category's own admin actions) aren't tagged with a Flow yet, pending their own flow's
-    // instrumentation pass, per the platform-wide standard's per-flow rollout.
-    private static readonly HashSet<string> ProductCatalogManagementAdminActions =
-    [
-        KartAdminService.Domain.Common.ActionNames.ProductCreate,
-        KartAdminService.Domain.Common.ActionNames.ProductUpdate,
-        KartAdminService.Domain.Common.ActionNames.ProductDeactivate,
-    ];
+    // Each completed flow's instrumentation pass adds its own action-name -> Flow entry here;
+    // action names not present in this map (coupons/users/inventory/permission-management, as of
+    // this comment) aren't tagged with a Flow yet, pending their own flow's pass, per the
+    // platform-wide standard's per-flow rollout.
+    private static readonly Dictionary<string, string> ActionFlowNames = new()
+    {
+        [KartAdminService.Domain.Common.ActionNames.ProductCreate] = "ProductCatalogManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.ProductUpdate] = "ProductCatalogManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.ProductDeactivate] = "ProductCatalogManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.CategoryCreate] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.CategoryUpdate] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.CategoryReorder] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.CategoryMove] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.AttributeCreate] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.AttributeUpdate] = "CategoryAttributeManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.AttributeDeprecate] = "CategoryAttributeManagementAdmin",
+    };
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -117,8 +124,8 @@ public sealed class OutboxRelayHostedService : BackgroundService
 
     private void PublishOne(IModel channel, AdminAction action)
     {
-        using var flowScope = ProductCatalogManagementAdminActions.Contains(action.Action)
-            ? KartFlowContext.Push("ProductCatalogManagementAdmin")
+        using var flowScope = ActionFlowNames.TryGetValue(action.Action, out var flowName)
+            ? KartFlowContext.Push(flowName)
             : null;
 
         var payload = new AdminActionPerformedPayload(action.AdminId, action.Action, action.EntityId);

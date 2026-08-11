@@ -37,6 +37,17 @@ public sealed class FakeCategoryServiceClient : ICategoryServiceClient
     public Task<Result> MoveCategoryAsync(string categoryId, string? newParentId, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(MoveResult);
 }
 
+public sealed class FakeAttributeServiceClient : IAttributeServiceClient
+{
+    public Result<string> CreateResult { get; set; } = Result.Success("attribute-1");
+    public Result UpdateResult { get; set; } = Result.Success();
+    public Result DeprecateResult { get; set; } = Result.Success();
+
+    public Task<Result<string>> CreateAttributeAsync(AttributeWriteRequest request, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(CreateResult);
+    public Task<Result> UpdateAttributeAsync(string attributeId, AttributeUpdateRequest request, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(UpdateResult);
+    public Task<Result> DeprecateAttributeAsync(string attributeId, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(DeprecateResult);
+}
+
 public sealed class FakeOfferServiceClient : IOfferServiceClient
 {
     public Result CreateResult { get; set; } = Result.Success();

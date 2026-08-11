@@ -23,6 +23,7 @@ public sealed class AdminContractTestFactory : WebApplicationFactory<Program>
     public InMemoryAdminActionRepository ActionRepository { get; } = new();
     public FakeProductServiceClient ProductClient { get; } = new();
     public FakeCategoryServiceClient CategoryClient { get; } = new();
+    public FakeAttributeServiceClient AttributeClient { get; } = new();
     public FakeOfferServiceClient OfferClient { get; } = new();
     public FakeIdentityAdminClient IdentityClient { get; } = new();
     public FakeInventoryServiceClient InventoryClient { get; } = new();
@@ -49,6 +50,9 @@ public sealed class AdminContractTestFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<ICategoryServiceClient>();
             services.AddSingleton<ICategoryServiceClient>(CategoryClient);
+
+            services.RemoveAll<IAttributeServiceClient>();
+            services.AddSingleton<IAttributeServiceClient>(AttributeClient);
 
             services.RemoveAll<IOfferServiceClient>();
             services.AddSingleton<IOfferServiceClient>(OfferClient);

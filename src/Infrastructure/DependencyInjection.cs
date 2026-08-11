@@ -84,6 +84,16 @@ public static class DependencyInjection
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category.TimeoutMilliseconds)));
 
+        // Attribute is a second aggregate inside kart-category-service itself (added for the
+        // "Category & Attribute Management (Admin)" flow), not a separate microservice - this
+        // typed client deliberately shares Category's own DownstreamServiceOptions endpoint/timeout
+        // rather than needing its own config section.
+        services.AddHttpClient<IAttributeServiceClient, AttributeServiceClient>((sp, client) =>
+            ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
+            .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
+                TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category.TimeoutMilliseconds)));
+
         services.AddHttpClient<IOfferServiceClient, OfferServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Offer))
             .AddHttpMessageHandler<ServicePrincipalAuthHandler>()

@@ -641,6 +641,143 @@ paths:
               schema: { $ref: '#/components/schemas/Problem' }
 
   # ---------------------------------------------------------------------
+  # Attribute management (category `catalog-management`) — added for the
+  # "Category & Attribute Management (Admin)" flow. Proxies Category
+  # Service's own Attribute write API (a second aggregate in that same
+  # service, not a separate microservice).
+  # ---------------------------------------------------------------------
+  /admin/attributes:
+    post:
+      operationId: createAttribute
+      summary: Create an attribute via Category Service's own Attribute write API.
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AttributeWriteRequest' }
+      responses:
+        '201':
+          description: Attribute created.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '401':
+          description: Not authenticated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `catalog-management` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: categoryId not found or not active.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Category Service unavailable (circuit breaker open) — no write happened.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/attributes/{attributeId}:
+    put:
+      operationId: updateAttribute
+      summary: Rename an attribute and replace its values list via Category Service's own write API.
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: attributeId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AttributeUpdateRequest' }
+      responses:
+        '200':
+          description: Attribute updated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '401':
+          description: Not authenticated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `catalog-management` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: attributeId not found or already deprecated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Category Service unavailable (circuit breaker open) — no write happened.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+    delete:
+      operationId: deprecateAttribute
+      summary: Deprecate an attribute via Category Service's own write API.
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: attributeId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Attribute deprecated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '401':
+          description: Not authenticated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `catalog-management` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '404':
+          description: attributeId not found or already deprecated.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '503':
+          description: Category Service unavailable (circuit breaker open) — no write happened.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  # ---------------------------------------------------------------------
   # Coupon issuance (category `coupon-issuance`). Proxies Offer Service's
   # POST /coupons and POST /coupons/{couponCode}/deactivate
   # (kart-offer-service/requirement-spec.md §5, "internal, admin-only" —
@@ -1085,6 +1222,35 @@ components:
         name: { type: string }
         parentId: { type: string, nullable: true }
         displayOrder: { type: integer, minimum: 0 }
+
+    AttributeWriteRequest:
+      type: object
+      description: Mirrors Category Service's own POST /v1/attributes. categoryId null creates a global attribute.
+      required: [name, dataType]
+      properties:
+        name: { type: string }
+        categoryId: { type: string, nullable: true }
+        dataType: { type: string, enum: [text, number, boolean, select] }
+        values:
+          type: array
+          items: { $ref: '#/components/schemas/AttributeValueWriteRequest' }
+
+    AttributeUpdateRequest:
+      type: object
+      description: Mirrors Category Service's own PATCH /v1/attributes/{id}. categoryId/dataType are immutable after creation.
+      required: [name]
+      properties:
+        name: { type: string }
+        values:
+          type: array
+          items: { $ref: '#/components/schemas/AttributeValueWriteRequest' }
+
+    AttributeValueWriteRequest:
+      type: object
+      required: [value, displayOrder]
+      properties:
+        value: { type: string }
+        displayOrder: { type: integer }
 
     CouponWriteRequest:
       type: object

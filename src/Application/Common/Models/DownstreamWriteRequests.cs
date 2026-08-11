@@ -20,6 +20,19 @@ public sealed record ProductWriteRequest(string Name, string? Description, strin
 /// <summary>api-contract.yaml CategoryWriteRequest — best-effort mirror of Category Service's own write API.</summary>
 public sealed record CategoryWriteRequest(string Name, string? ParentId, int? DisplayOrder);
 
+/// <summary>
+/// api-contract.yaml AttributeWriteRequest — mirrors Category Service's own POST /v1/attributes
+/// (Attribute is a second aggregate in that same service, not a separate one - see
+/// AttributeServiceClient's doc comment). CategoryId null creates a global attribute.
+/// </summary>
+public sealed record AttributeWriteRequest(string Name, string? CategoryId, string DataType, IReadOnlyList<AttributeValueWriteRequest>? Values);
+
+/// <summary>api-contract.yaml AttributeUpdateRequest — Category Service's PATCH /v1/attributes/{id}; CategoryId/DataType are immutable after creation so this DTO omits them entirely.</summary>
+public sealed record AttributeUpdateRequest(string Name, IReadOnlyList<AttributeValueWriteRequest>? Values);
+
+/// <summary>api-contract.yaml AttributeValueWriteRequest.</summary>
+public sealed record AttributeValueWriteRequest(string Value, int DisplayOrder);
+
 /// <summary>api-contract.yaml CouponWriteRequest — best-effort mirror of Offer Service's own POST /coupons.</summary>
 public sealed record CouponWriteRequest(
     string CouponCode,

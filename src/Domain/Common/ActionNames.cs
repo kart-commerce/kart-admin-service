@@ -18,6 +18,9 @@ public static class ActionNames
     public const string CategoryUpdate = "category.update";
     public const string CategoryReorder = "category.reorder";
     public const string CategoryMove = "category.move";
+    public const string AttributeCreate = "attribute.create";
+    public const string AttributeUpdate = "attribute.update";
+    public const string AttributeDeprecate = "attribute.deprecate";
     public const string CouponCreate = "coupon.create";
     public const string CouponDeactivate = "coupon.deactivate";
     public const string UserLock = "user.lock";
