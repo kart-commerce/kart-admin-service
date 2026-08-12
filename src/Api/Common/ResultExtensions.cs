@@ -40,6 +40,8 @@ public static class ResultExtensions
         "downstream_unavailable" => StatusCodes.Status503ServiceUnavailable,
         "validation_error" => StatusCodes.Status400BadRequest,
         "unauthorized" => StatusCodes.Status401Unauthorized,
+        "downstream_unauthorized" => StatusCodes.Status401Unauthorized,
+        "downstream_forbidden" => StatusCodes.Status403Forbidden,
         _ => StatusCodes.Status500InternalServerError,
     };
 }

@@ -49,7 +49,7 @@ public static class DependencyInjection
         services.AddKartRabbitMqConnectionFactory(sp =>
         {
             var options = sp.GetRequiredService<IOptions<RabbitMqOptions>>().Value;
-            return new RabbitMqConnectionSettings(options.HostName, UserName: options.UserName, Password: options.Password);
+            return new RabbitMqConnectionSettings(options.HostName, Port: options.Port, UserName: options.UserName, Password: options.Password);
         });
         services.AddKartRabbitMqTopologyStartup();
         services.AddHostedService<OutboxRelayHostedService>();
@@ -66,25 +66,51 @@ public static class DependencyInjection
         services.Configure<DownstreamServiceOptions>(configuration.GetSection(DownstreamServiceOptions.SectionName));
         services.Configure<IdentityClientCredentialsOptions>(configuration.GetSection(IdentityClientCredentialsOptions.SectionName));
 
+        // Owning-service write calls all need this service's own client-credentials token
+        // attached (see ServicePrincipalAuthHandler's doc comment) - added before the resilience
+        // policy handler so the token is fetched/attached once per outbound call, with Polly's
+        // retries operating on the already-authorized HttpRequestMessage.
+        services.AddTransient<ServicePrincipalAuthHandler>();
+
         services.AddHttpClient<IProductServiceClient, ProductServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Product))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Product.TimeoutMilliseconds)));
 
         services.AddHttpClient<ICategoryServiceClient, CategoryServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
+            .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
+                TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category.TimeoutMilliseconds)));
+
+        // Attribute is a second aggregate inside kart-category-service itself (added for the
+        // "Category & Attribute Management (Admin)" flow), not a separate microservice - this
+        // typed client deliberately shares Category's own DownstreamServiceOptions endpoint/timeout
+        // rather than needing its own config section.
+        services.AddHttpClient<IAttributeServiceClient, AttributeServiceClient>((sp, client) =>
+            ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Category.TimeoutMilliseconds)));
 
         services.AddHttpClient<IOfferServiceClient, OfferServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Offer))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Offer.TimeoutMilliseconds)));
 
         services.AddHttpClient<IInventoryServiceClient, InventoryServiceClient>((sp, client) =>
             ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Inventory))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
             .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
                 TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Inventory.TimeoutMilliseconds)));
+
+        services.AddHttpClient<IOrderServiceClient, OrderServiceClient>((sp, client) =>
+            ConfigureEndpoint(client, sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Order))
+            .AddHttpMessageHandler<ServicePrincipalAuthHandler>()
+            .AddPolicyHandler((sp, _) => ResiliencePolicies.BuildPolicy(
+                TimeSpan.FromMilliseconds(sp.GetRequiredService<IOptions<DownstreamServiceOptions>>().Value.Order.TimeoutMilliseconds)));
 
         // Identity's client-credentials token endpoint gets its own plain HttpClient (no
         // Idempotency-Key semantics apply to a token fetch) plus the shared circuit breaker for

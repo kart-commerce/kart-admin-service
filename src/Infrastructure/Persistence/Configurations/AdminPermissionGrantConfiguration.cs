@@ -12,7 +12,7 @@ public sealed class AdminPermissionGrantConfiguration : IEntityTypeConfiguration
     {
         builder.ToTable("admin_permission_grants", t => t.HasCheckConstraint(
             "ck_admin_permission_grants_category",
-            "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management')"));
+            "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management','order-management')"));
 
         builder.HasKey(g => g.GrantId);
         // Domain.Issue() already generates the id in C# — ValueGeneratedNever so EF always
