@@ -29,8 +29,8 @@ public sealed class OutboxRelayHostedService : BackgroundService
     private const int BatchSize = 50;
 
     // Each completed flow's instrumentation pass adds its own action-name -> Flow entry here;
-    // action names not present in this map (coupons/users/inventory/permission-management, as of
-    // this comment) aren't tagged with a Flow yet, pending their own flow's pass, per the
+    // action names not present in this map (coupons/users/permission-management, as of this
+    // comment) aren't tagged with a Flow yet, pending their own flow's pass, per the
     // platform-wide standard's per-flow rollout.
     private static readonly Dictionary<string, string> ActionFlowNames = new()
     {
@@ -49,6 +49,13 @@ public sealed class OutboxRelayHostedService : BackgroundService
         [KartAdminService.Domain.Common.ActionNames.OrderShippingAddressUpdate] = "OrderManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.OrderShipmentRequest] = "OrderManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.OrderFulfillmentExceptionResolve] = "OrderManagementAdmin",
+
+        // Inventory & Stock Management flow - also closes the pre-existing gap where
+        // inventory.replenish (ADM-15) had no Flow tag at all despite predating this flow.
+        [KartAdminService.Domain.Common.ActionNames.InventoryReplenish] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryProvision] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryUpdateThreshold] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryReconcile] = "InventoryStockManagement",
     };
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
