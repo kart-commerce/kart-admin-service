@@ -24,7 +24,21 @@ public sealed class DeactivateProductCommandHandler : IRequestHandler<Deactivate
             PermissionCategory.CatalogManagement,
             request.IdempotencyKey,
             ActionNames.ProductDeactivate,
-            ct => _client.DeactivateProductAsync(request.ProductId, request.IdempotencyKey.ToString(), ct).WithKnownEntityId(request.ProductId),
+            ct => DeactivateAsync(request, ct),
             context: null,
             cancellationToken);
+
+    // request.ProductId is the SKU (the /admin/products/{sku} contract); Product Service's own
+    // PATCH /v1/product-groups/{id} is GUID-keyed, so the group id must be resolved first.
+    private async Task<Result<string>> DeactivateAsync(DeactivateProductCommand request, CancellationToken cancellationToken)
+    {
+        var lookup = await _client.GetProductGroupIdAsync(request.ProductId, cancellationToken);
+        if (lookup.IsFailure)
+        {
+            return Result.Failure<string>(lookup.Error);
+        }
+
+        return await _client.DeactivateProductAsync(lookup.Value, request.IdempotencyKey.ToString(), cancellationToken)
+            .WithKnownEntityId(request.ProductId);
+    }
 }

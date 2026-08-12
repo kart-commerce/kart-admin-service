@@ -69,6 +69,10 @@ namespace KartAdminService.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("published_by");
 
+                    b.Property<string>("TraceParent")
+                        .HasColumnType("text")
+                        .HasColumnName("trace_parent");
+
                     b.HasKey("ActionId");
 
                     b.HasIndex("IdempotencyKey")
@@ -84,7 +88,7 @@ namespace KartAdminService.Infrastructure.Persistence.Migrations
 
                     b.ToTable("admin_actions", null, t =>
                         {
-                            t.HasCheckConstraint("ck_admin_actions_category", "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management')");
+                            t.HasCheckConstraint("ck_admin_actions_category", "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management','order-management')");
                         });
                 });
 
@@ -136,7 +140,7 @@ namespace KartAdminService.Infrastructure.Persistence.Migrations
 
                     b.ToTable("admin_permission_grants", null, t =>
                         {
-                            t.HasCheckConstraint("ck_admin_permission_grants_category", "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management')");
+                            t.HasCheckConstraint("ck_admin_permission_grants_category", "category IN ('catalog-management','coupon-issuance','user-suspension','inventory-replenishment','permission-management','order-management')");
                         });
                 });
 #pragma warning restore 612, 618

@@ -65,26 +65,41 @@ public sealed class AdminActionExecutor
         var hasLiveGrant = await _grantRepository.HasLiveGrantAsync(principalId, category, cancellationToken);
         if (!hasLiveGrant)
         {
+            _logger.LogWarning(
+                "Stage {Stage}: principal {PrincipalId} denied for category {Category} (action {Action})",
+                "PermissionDenied",
+                principalId,
+                category.ToWireValue(),
+                actionName);
             return Result.Failure<AdminActionResultDto>(
                 Error.Custom("permission_denied", $"Principal '{principalId}' has no live grant for category '{category.ToWireValue()}'."));
         }
+
+        _logger.LogInformation("Stage {Stage}: principal {PrincipalId} has a live grant for category {Category}", "PermissionGrantChecked", principalId, category.ToWireValue());
 
         var existing = await _actionRepository.GetByIdempotencyKeyAsync(idempotencyKey, cancellationToken);
         if (existing is not null)
         {
             _logger.LogInformation(
-                "Idempotency-Key {IdempotencyKey} already recorded as {ActionId} ({Action}); replaying stored result.",
+                "Stage {Stage}: Idempotency-Key {IdempotencyKey} already recorded as {ActionId} ({Action}); replaying stored result.",
+                "IdempotencyKeyReplayed",
                 idempotencyKey,
                 existing.ActionId,
                 existing.Action);
             return Result.Success(AdminActionResultDto.FromDomain(existing));
         }
 
+        _logger.LogInformation("Stage {Stage}: Idempotency-Key {IdempotencyKey} accepted for action {Action}", "IdempotencyKeyAccepted", idempotencyKey, actionName);
+
+        _logger.LogInformation("Stage {Stage}: downstream owning-service call started for action {Action}", "ProductServiceCallStarted", actionName);
         var downstreamResult = await performDownstreamWork(cancellationToken);
         if (downstreamResult.IsFailure)
         {
+            _logger.LogWarning("Stage {Stage}: downstream owning-service call failed for action {Action} - {Error}", "ProductServiceCallFailed", actionName, downstreamResult.Error);
             return Result.Failure<AdminActionResultDto>(downstreamResult.Error);
         }
+
+        _logger.LogInformation("Stage {Stage}: downstream owning-service call succeeded for action {Action}", "ProductServiceCallSucceeded", actionName);
 
         var now = _timeProvider.GetUtcNow();
         var recordResult = AdminAction.Record(idempotencyKey, principalId, category, actionName, downstreamResult.Value, context, now);
@@ -99,6 +114,7 @@ public sealed class AdminActionExecutor
         // (Infrastructure catches the DB's unique-index violation and re-fetches the winning
         // row) — Application never needs to know the write provider's exception shape.
         var committed = await _actionRepository.AddAndCommitOrGetExistingAsync(action, cancellationToken);
+        _logger.LogInformation("Stage {Stage}: admin action {ActionId} ({Action}) persisted to admin_actions", "AdminActionPersisted", committed.ActionId, committed.Action);
         return Result.Success(AdminActionResultDto.FromDomain(committed));
     }
 }

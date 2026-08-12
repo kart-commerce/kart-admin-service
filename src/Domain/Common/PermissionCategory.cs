@@ -16,6 +16,15 @@ public enum PermissionCategory
     UserSuspension,
     InventoryReplenishment,
     PermissionManagement,
+
+    /// <summary>
+    /// Added for the "Order Management (Admin)" flow — gates Cancel/Update Status/Update Shipping
+    /// Address/Request Shipment/Resolve Fulfillment Exception. Per this enum's own closed-set
+    /// doc comment, extending it is a deliberate requirement decision, not a casual add — tracked
+    /// via the accompanying EF migration that widens both `admin_actions`/`admin_permission_grants`
+    /// CHECK constraints to accept the new `order-management` wire value.
+    /// </summary>
+    OrderManagement,
 }
 
 public static class PermissionCategoryExtensions
@@ -28,6 +37,7 @@ public static class PermissionCategoryExtensions
         PermissionCategory.UserSuspension => "user-suspension",
         PermissionCategory.InventoryReplenishment => "inventory-replenishment",
         PermissionCategory.PermissionManagement => "permission-management",
+        PermissionCategory.OrderManagement => "order-management",
         _ => throw new ArgumentOutOfRangeException(nameof(category), category, "Unknown permission category."),
     };
 
@@ -38,6 +48,7 @@ public static class PermissionCategoryExtensions
         "user-suspension" => PermissionCategory.UserSuspension,
         "inventory-replenishment" => PermissionCategory.InventoryReplenishment,
         "permission-management" => PermissionCategory.PermissionManagement,
+        "order-management" => PermissionCategory.OrderManagement,
         _ => throw new ArgumentOutOfRangeException(nameof(value), value, "Unknown permission category."),
     };
 }

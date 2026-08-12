@@ -18,9 +18,19 @@ public static class ActionNames
     public const string CategoryUpdate = "category.update";
     public const string CategoryReorder = "category.reorder";
     public const string CategoryMove = "category.move";
+    public const string AttributeCreate = "attribute.create";
+    public const string AttributeUpdate = "attribute.update";
+    public const string AttributeDeprecate = "attribute.deprecate";
     public const string CouponCreate = "coupon.create";
     public const string CouponDeactivate = "coupon.deactivate";
     public const string UserLock = "user.lock";
     public const string UserUnlock = "user.unlock";
     public const string InventoryReplenish = "inventory.replenish";
+
+    // Order Management (Admin) flow #7 — proxies to kart-order-service's own admin-gated endpoints.
+    public const string OrderCancel = "order.cancel";
+    public const string OrderStatusUpdate = "order.status.admin_update";
+    public const string OrderShippingAddressUpdate = "order.shipping_address.update";
+    public const string OrderShipmentRequest = "order.shipment.request";
+    public const string OrderFulfillmentExceptionResolve = "order.fulfillment_exception.resolve";
 }
