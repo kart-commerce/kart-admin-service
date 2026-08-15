@@ -41,7 +41,9 @@ public sealed class CategoriesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: create category received (parentId {ParentId})", "AdminCategoriesControllerReceived", category.ParentId);
 
-        var result = await _sender.Send(new CreateCategoryCommand(ActingPrincipalId, category, idempotencyKey), cancellationToken);
+        var command = new CreateCategoryCommand(ActingPrincipalId, category, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching CreateCategoryCommand (parentId {ParentId})", "CreateCategoryCommandDispatched", category.ParentId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
 
@@ -61,7 +63,9 @@ public sealed class CategoriesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: update category {CategoryId} received", "AdminCategoriesControllerReceived", categoryId);
 
-        var result = await _sender.Send(new UpdateCategoryCommand(ActingPrincipalId, categoryId, category, ifMatch, idempotencyKey), cancellationToken);
+        var command = new UpdateCategoryCommand(ActingPrincipalId, categoryId, category, ifMatch, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching UpdateCategoryCommand for category {CategoryId}", "UpdateCategoryCommandDispatched", categoryId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -79,7 +83,9 @@ public sealed class CategoriesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: reorder category {CategoryId} received (displayOrder {DisplayOrder})", "AdminCategoriesControllerReceived", categoryId, request.DisplayOrder);
 
-        var result = await _sender.Send(new ReorderCategoryCommand(ActingPrincipalId, categoryId, request.DisplayOrder, idempotencyKey), cancellationToken);
+        var command = new ReorderCategoryCommand(ActingPrincipalId, categoryId, request.DisplayOrder, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching ReorderCategoryCommand for category {CategoryId}", "ReorderCategoryCommandDispatched", categoryId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -97,7 +103,9 @@ public sealed class CategoriesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: move category {CategoryId} received", "AdminCategoriesControllerReceived", categoryId);
 
-        var result = await _sender.Send(new MoveCategoryCommand(ActingPrincipalId, categoryId, request.NewParentId, idempotencyKey), cancellationToken);
+        var command = new MoveCategoryCommand(ActingPrincipalId, categoryId, request.NewParentId, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching MoveCategoryCommand for category {CategoryId}", "MoveCategoryCommandDispatched", categoryId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 }

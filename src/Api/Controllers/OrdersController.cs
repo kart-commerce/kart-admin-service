@@ -53,7 +53,9 @@ public sealed class OrdersController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: cancel order {OrderId} received", "AdminOrdersControllerReceived", orderId);
 
-        var result = await _sender.Send(new KartAdminService.Application.Features.CancelOrder.CancelOrderCommand(ActingPrincipalId, orderId, request?.Reason, idempotencyKey), cancellationToken);
+        var command = new KartAdminService.Application.Features.CancelOrder.CancelOrderCommand(ActingPrincipalId, orderId, request?.Reason, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching CancelOrderCommand for order {OrderId}", "CancelOrderCommandDispatched", orderId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -73,7 +75,9 @@ public sealed class OrdersController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: update order {OrderId} status -> {TargetStatus} received", "AdminOrdersControllerReceived", orderId, request.TargetStatus);
 
-        var result = await _sender.Send(new AdminUpdateOrderStatusCommand(ActingPrincipalId, orderId, request.TargetStatus, request.Reason, idempotencyKey), cancellationToken);
+        var command = new AdminUpdateOrderStatusCommand(ActingPrincipalId, orderId, request.TargetStatus, request.Reason, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching AdminUpdateOrderStatusCommand for order {OrderId} -> {TargetStatus}", "AdminUpdateOrderStatusCommandDispatched", orderId, request.TargetStatus);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -92,7 +96,9 @@ public sealed class OrdersController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: update order {OrderId} shipping address received", "AdminOrdersControllerReceived", orderId);
 
-        var result = await _sender.Send(new UpdateOrderShippingAddressCommand(ActingPrincipalId, orderId, request, idempotencyKey), cancellationToken);
+        var command = new UpdateOrderShippingAddressCommand(ActingPrincipalId, orderId, request, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching UpdateOrderShippingAddressCommand for order {OrderId}", "UpdateOrderShippingAddressCommandDispatched", orderId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -110,7 +116,9 @@ public sealed class OrdersController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: request shipment for order {OrderId} received", "AdminOrdersControllerReceived", orderId);
 
-        var result = await _sender.Send(new RequestOrderShipmentCommand(ActingPrincipalId, orderId, idempotencyKey), cancellationToken);
+        var command = new RequestOrderShipmentCommand(ActingPrincipalId, orderId, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching RequestOrderShipmentCommand for order {OrderId}", "RequestOrderShipmentCommandDispatched", orderId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -129,7 +137,9 @@ public sealed class OrdersController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: resolve fulfillment exception for order {OrderId} (action={Action}) received", "AdminOrdersControllerReceived", orderId, request.Action);
 
-        var result = await _sender.Send(new ResolveOrderFulfillmentExceptionCommand(ActingPrincipalId, orderId, request.Action, idempotencyKey), cancellationToken);
+        var command = new ResolveOrderFulfillmentExceptionCommand(ActingPrincipalId, orderId, request.Action, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching ResolveOrderFulfillmentExceptionCommand for order {OrderId} (action={Action})", "ResolveOrderFulfillmentExceptionCommandDispatched", orderId, request.Action);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 }

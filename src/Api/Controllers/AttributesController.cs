@@ -44,7 +44,9 @@ public sealed class AttributesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: create attribute received (categoryId {CategoryId})", "AdminAttributesControllerReceived", attribute.CategoryId);
 
-        var result = await _sender.Send(new CreateAttributeCommand(ActingPrincipalId, attribute, idempotencyKey), cancellationToken);
+        var command = new CreateAttributeCommand(ActingPrincipalId, attribute, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching CreateAttributeCommand (categoryId {CategoryId})", "CreateAttributeCommandDispatched", attribute.CategoryId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
 
@@ -62,7 +64,9 @@ public sealed class AttributesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: update attribute {AttributeId} received", "AdminAttributesControllerReceived", attributeId);
 
-        var result = await _sender.Send(new UpdateAttributeCommand(ActingPrincipalId, attributeId, attribute, idempotencyKey), cancellationToken);
+        var command = new UpdateAttributeCommand(ActingPrincipalId, attributeId, attribute, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching UpdateAttributeCommand for attribute {AttributeId}", "UpdateAttributeCommandDispatched", attributeId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -79,7 +83,9 @@ public sealed class AttributesController : AdminControllerBase
         using var flowScope = KartFlowContext.Push(FlowName);
         _logger.LogInformation("Stage {Stage}: deprecate attribute {AttributeId} received", "AdminAttributesControllerReceived", attributeId);
 
-        var result = await _sender.Send(new DeprecateAttributeCommand(ActingPrincipalId, attributeId, idempotencyKey), cancellationToken);
+        var command = new DeprecateAttributeCommand(ActingPrincipalId, attributeId, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching DeprecateAttributeCommand for attribute {AttributeId}", "DeprecateAttributeCommandDispatched", attributeId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 }

@@ -38,7 +38,9 @@ public sealed class ProductsController : AdminControllerBase
         using var flowScope = KartFlowContext.Push("ProductCatalogManagementAdmin");
         _logger.LogInformation("Stage {Stage}: create product received for sku {Sku}", "AdminProductsControllerReceived", product.Sku);
 
-        var result = await _sender.Send(new CreateProductCommand(ActingPrincipalId, product, idempotencyKey), cancellationToken);
+        var command = new CreateProductCommand(ActingPrincipalId, product, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching CreateProductCommand for sku {Sku}", "CreateProductCommandDispatched", product.Sku);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
 
@@ -58,7 +60,9 @@ public sealed class ProductsController : AdminControllerBase
         using var flowScope = KartFlowContext.Push("ProductCatalogManagementAdmin");
         _logger.LogInformation("Stage {Stage}: update product {ProductId} received", "AdminProductsControllerReceived", productId);
 
-        var result = await _sender.Send(new UpdateProductCommand(ActingPrincipalId, productId, product, ifMatch, idempotencyKey), cancellationToken);
+        var command = new UpdateProductCommand(ActingPrincipalId, productId, product, ifMatch, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching UpdateProductCommand for product {ProductId}", "UpdateProductCommandDispatched", productId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 
@@ -75,7 +79,9 @@ public sealed class ProductsController : AdminControllerBase
         using var flowScope = KartFlowContext.Push("ProductCatalogManagementAdmin");
         _logger.LogInformation("Stage {Stage}: deactivate product {ProductId} received", "AdminProductsControllerReceived", productId);
 
-        var result = await _sender.Send(new DeactivateProductCommand(ActingPrincipalId, productId, idempotencyKey), cancellationToken);
+        var command = new DeactivateProductCommand(ActingPrincipalId, productId, idempotencyKey);
+        _logger.LogInformation("Stage {Stage}: dispatching DeactivateProductCommand for product {ProductId}", "DeactivateProductCommandDispatched", productId);
+        var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
 }
