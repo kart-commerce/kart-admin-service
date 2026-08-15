@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace KartAdminService.Api.Controllers;
 
-/// <summary>api-contract.yaml /admin/categories* (ADM-7, ADM-8, ADM-9, ADM-10) — catalog-management category, proxies Category Service's own write API. Every action here belongs to the "Category & Attribute Management (Admin)" flow (KartFlowContext.Push mirrors ProductsController's own convention).</summary>
+/// <summary>api-contract.yaml /admin/categories* (ADM-7, ADM-8, ADM-9, ADM-10) — catalog-management category, proxies Category Service's own write API. Every action here belongs to the "Category & Attribute Management (Admin)" flow.</summary>
 [ApiController]
 [Route("v1/admin/categories")]
 [Authorize(Policy = AuthenticationExtensions.AdminPolicy)]
@@ -42,7 +42,6 @@ public sealed class CategoriesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: create category received (parentId {ParentId})", "AdminCategoriesControllerReceived", category.ParentId);
 
         var command = new CreateCategoryCommand(ActingPrincipalId, category, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching CreateCategoryCommand (parentId {ParentId})", "CreateCategoryCommandDispatched", category.ParentId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
@@ -64,7 +63,6 @@ public sealed class CategoriesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: update category {CategoryId} received", "AdminCategoriesControllerReceived", categoryId);
 
         var command = new UpdateCategoryCommand(ActingPrincipalId, categoryId, category, ifMatch, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching UpdateCategoryCommand for category {CategoryId}", "UpdateCategoryCommandDispatched", categoryId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -84,7 +82,6 @@ public sealed class CategoriesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: reorder category {CategoryId} received (displayOrder {DisplayOrder})", "AdminCategoriesControllerReceived", categoryId, request.DisplayOrder);
 
         var command = new ReorderCategoryCommand(ActingPrincipalId, categoryId, request.DisplayOrder, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching ReorderCategoryCommand for category {CategoryId}", "ReorderCategoryCommandDispatched", categoryId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -104,7 +101,6 @@ public sealed class CategoriesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: move category {CategoryId} received", "AdminCategoriesControllerReceived", categoryId);
 
         var command = new MoveCategoryCommand(ActingPrincipalId, categoryId, request.NewParentId, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching MoveCategoryCommand for category {CategoryId}", "MoveCategoryCommandDispatched", categoryId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }

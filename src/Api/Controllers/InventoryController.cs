@@ -16,9 +16,7 @@ namespace KartAdminService.Api.Controllers;
 /// api-contract.yaml /admin/inventory/* — inventory-replenishment category, proxies Inventory
 /// Service's own write paths. ReplenishInventory backs ADM-15 (pre-existing); Provision/
 /// UpdateThreshold/Reconcile were added for the Inventory & Stock Management flow (business-flows.md
-/// flow #5). Every action here belongs to that flow (KartFlowContext.Push mirrors every sibling
-/// controller's own convention; "InventoryStockManagement" already used by
-/// OutboxRelayHostedService's ActionFlowNames map, this closes the controller-side half of that gap).
+/// flow #5). Every action here belongs to that flow.
 /// </summary>
 [ApiController]
 [Route("v1/admin/inventory")]
@@ -51,7 +49,6 @@ public sealed class InventoryController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: replenish inventory for sku {Sku} received (warehouse {WarehouseId})", "AdminInventoryControllerReceived", sku, request.WarehouseId);
 
         var command = new ReplenishInventoryCommand(ActingPrincipalId, sku, request.WarehouseId, request.QtyAdded, request.Reason, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching ReplenishInventoryCommand for sku {Sku}", "ReplenishInventoryCommandDispatched", sku);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -70,7 +67,6 @@ public sealed class InventoryController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: provision warehouse stock received (warehouse {WarehouseId}, sku {Sku})", "AdminInventoryControllerReceived", request.WarehouseId, request.Sku);
 
         var command = new ProvisionWarehouseStockCommand(ActingPrincipalId, request.WarehouseId, request.Sku, request.InitialQty, request.ReplenishmentThreshold, request.TargetStockingLevel, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching ProvisionWarehouseStockCommand for warehouse {WarehouseId}, sku {Sku}", "ProvisionWarehouseStockCommandDispatched", request.WarehouseId, request.Sku);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -91,7 +87,6 @@ public sealed class InventoryController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: update replenishment threshold received (warehouse {WarehouseId}, sku {Sku})", "AdminInventoryControllerReceived", warehouseId, sku);
 
         var command = new UpdateReplenishmentThresholdCommand(ActingPrincipalId, warehouseId, sku, request.ReplenishmentThreshold, request.TargetStockingLevel, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching UpdateReplenishmentThresholdCommand for warehouse {WarehouseId}, sku {Sku}", "UpdateReplenishmentThresholdCommandDispatched", warehouseId, sku);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -112,7 +107,6 @@ public sealed class InventoryController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: reconcile stock received (warehouse {WarehouseId}, sku {Sku})", "AdminInventoryControllerReceived", warehouseId, sku);
 
         var command = new ReconcileStockCommand(ActingPrincipalId, warehouseId, sku, request.CountedQty, request.Reason, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching ReconcileStockCommand for warehouse {WarehouseId}, sku {Sku}", "ReconcileStockCommandDispatched", warehouseId, sku);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }

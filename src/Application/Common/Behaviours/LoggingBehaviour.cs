@@ -11,12 +11,6 @@ namespace KartAdminService.Application.Common.Behaviours;
 /// leak PII/internals by construction. Exceptions are intentionally left unlogged here and
 /// rethrown as-is: they're logged once, at the true boundary (Kart.Shared.ErrorHandling's
 /// KartExceptionHandler), not duplicated at every pipeline layer.
-///
-/// checkpoint-logging-standard.md's stage 3 ("<Command>HandlerStarted", first line inside
-/// Handle()) is generalized here rather than duplicated in every handler, exactly like
-/// kart-identity-service's own LoggingBehaviour reference implementation — this behavior already
-/// wraps every MediatR request platform-wide, so it's the one place that's true by construction
-/// instead of by every handler author remembering to add it.
 /// </summary>
 public sealed class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
@@ -36,16 +30,10 @@ public sealed class LoggingBehaviour<TRequest, TResponse> : IPipelineBehavior<TR
         var requestName = typeof(TRequest).Name;
         var stopwatch = Stopwatch.StartNew();
 
-        _logger.LogInformation(
-            "Stage {Stage}: {RequestName} handler started",
-            $"{requestName}HandlerStarted",
-            requestName);
-
         var response = await next();
 
         _logger.LogInformation(
-            "Stage {Stage}: {RequestName} completed in {ElapsedMilliseconds}ms",
-            $"{requestName}Completed",
+            "{RequestName} completed in {ElapsedMilliseconds}ms",
             requestName,
             stopwatch.ElapsedMilliseconds);
 

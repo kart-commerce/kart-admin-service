@@ -16,10 +16,9 @@ namespace KartAdminService.Api.Controllers;
 /// api-contract.yaml /admin/permission-grants* (ADM-1, ADM-2, ADM-3) — the permission-management
 /// meta-category. Issue/Revoke belong to the "Roles &amp; Permission Management (Admin)" flow
 /// (business-flows.md flow #15: Create Role/Assign Permissions/Assign Role to Staff maps to Issue,
-/// Update/Revoke Permission maps to Revoke); KartFlowContext.Push mirrors every sibling
-/// controller's own convention. ListPermissionGrants is a read with no admin_actions audit row, so
-/// — same as every other controller's own read/write split (e.g. OrdersController's own doc
-/// comment) — it deliberately gets no Flow tag.
+/// Update/Revoke Permission maps to Revoke). ListPermissionGrants is a read with no admin_actions
+/// audit row, so — same as every other controller's own read/write split (e.g. OrdersController's
+/// own doc comment) — it deliberately gets no Flow tag.
 /// </summary>
 [ApiController]
 [Route("v1/admin/permission-grants")]
@@ -70,7 +69,6 @@ public sealed class PermissionGrantsController : AdminControllerBase
             PermissionCategoryExtensions.ParseWireValue(request.Category),
             idempotencyKey);
 
-        _logger.LogInformation("Stage {Stage}: dispatching IssuePermissionGrantCommand for principal {PrincipalId}, category {Category}", "IssuePermissionGrantCommandDispatched", request.PrincipalId, request.Category);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<PermissionGrantDto, PermissionGrantDto>(
             result,
@@ -92,7 +90,6 @@ public sealed class PermissionGrantsController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: revoke permission grant {GrantId} received", "AdminPermissionGrantsControllerReceived", grantId);
 
         var command = new RevokePermissionGrantCommand(ActingPrincipalId, grantId, ifMatch, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching RevokePermissionGrantCommand for grant {GrantId}", "RevokePermissionGrantCommandDispatched", grantId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<PermissionGrantDto, PermissionGrantDto>(result, r => Ok(r));
     }

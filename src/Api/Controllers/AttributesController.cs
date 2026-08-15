@@ -13,8 +13,7 @@ namespace KartAdminService.Api.Controllers;
 
 /// <summary>
 /// api-contract.yaml /admin/attributes* — catalog-management category, proxies Category Service's
-/// own Attribute write API. Added for the "Category &amp; Attribute Management (Admin)" flow;
-/// mirrors CategoriesController/ProductsController's shape exactly, including the Flow tag.
+/// own Attribute write API. Added for the "Category &amp; Attribute Management (Admin)" flow.
 /// </summary>
 [ApiController]
 [Route("v1/admin/attributes")]
@@ -45,7 +44,6 @@ public sealed class AttributesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: create attribute received (categoryId {CategoryId})", "AdminAttributesControllerReceived", attribute.CategoryId);
 
         var command = new CreateAttributeCommand(ActingPrincipalId, attribute, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching CreateAttributeCommand (categoryId {CategoryId})", "CreateAttributeCommandDispatched", attribute.CategoryId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
@@ -65,7 +63,6 @@ public sealed class AttributesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: update attribute {AttributeId} received", "AdminAttributesControllerReceived", attributeId);
 
         var command = new UpdateAttributeCommand(ActingPrincipalId, attributeId, attribute, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching UpdateAttributeCommand for attribute {AttributeId}", "UpdateAttributeCommandDispatched", attributeId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }
@@ -84,7 +81,6 @@ public sealed class AttributesController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: deprecate attribute {AttributeId} received", "AdminAttributesControllerReceived", attributeId);
 
         var command = new DeprecateAttributeCommand(ActingPrincipalId, attributeId, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching DeprecateAttributeCommand for attribute {AttributeId}", "DeprecateAttributeCommandDispatched", attributeId);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }

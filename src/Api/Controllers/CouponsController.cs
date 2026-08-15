@@ -13,8 +13,7 @@ namespace KartAdminService.Api.Controllers;
 /// <summary>
 /// api-contract.yaml /admin/coupons* (ADM-11, ADM-12) — coupon-issuance category, proxies Offer
 /// Service's admin-only write API. Every action here belongs to the "Offers, Coupons &amp;
-/// Promotions Management (Admin)" flow (business-flows.md flow #12); KartFlowContext.Push mirrors
-/// every sibling controller's own convention.
+/// Promotions Management (Admin)" flow (business-flows.md flow #12).
 /// </summary>
 [ApiController]
 [Route("v1/admin/coupons")]
@@ -46,7 +45,6 @@ public sealed class CouponsController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: create coupon received for code {CouponCode}", "AdminCouponsControllerReceived", coupon.CouponCode);
 
         var command = new CreateCouponCommand(ActingPrincipalId, coupon, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching CreateCouponCommand for code {CouponCode}", "CreateCouponCommandDispatched", coupon.CouponCode);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Created(string.Empty, r));
     }
@@ -65,7 +63,6 @@ public sealed class CouponsController : AdminControllerBase
         _logger.LogInformation("Stage {Stage}: deactivate coupon {CouponCode} received", "AdminCouponsControllerReceived", couponCode);
 
         var command = new DeactivateCouponCommand(ActingPrincipalId, couponCode, idempotencyKey);
-        _logger.LogInformation("Stage {Stage}: dispatching DeactivateCouponCommand for code {CouponCode}", "DeactivateCouponCommandDispatched", couponCode);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<AdminActionResultDto, AdminActionResultDto>(result, r => Ok(r));
     }

@@ -115,23 +115,9 @@ public sealed class AdminActionExecutor
         // row) — Application never needs to know the write provider's exception shape.
         var committed = await _actionRepository.AddAndCommitOrGetExistingAsync(action, cancellationToken);
 
-        // admin_actions doubles as this service's outbox table (OutboxRelayHostedService polls
-        // it directly by PublishedAt == null), so one row/one SaveChanges covers checkpoint-logging
-        // stages 6+7 (<Entity>Persisted + <Event>OutboxEventEnqueued) in a single line, same as the
-        // reference implementation's own "one line when they're the same SaveChanges call" case.
         _logger.LogInformation(
-            "Stage {Stage}: admin action {ActionId} ({Action}) persisted to admin_actions, enqueued for outbox relay",
+            "Stage {Stage}: admin action {ActionId} ({Action}) persisted to admin_actions and completed, enqueued for outbox relay",
             "AdminActionPersisted",
-            committed.ActionId,
-            committed.Action);
-
-        // Stage 12 (<Flow>StepCompleted) — this executor is the shared terminal point for every
-        // mutating /admin/* handler, so logging it here once covers every flow that routes through
-        // it, the same way stage 3/4 are generalized once in the MediatR pipeline behaviors rather
-        // than duplicated per handler.
-        _logger.LogInformation(
-            "Stage {Stage}: admin action {ActionId} ({Action}) completed successfully",
-            "AdminActionFlowStepCompleted",
             committed.ActionId,
             committed.Action);
 
