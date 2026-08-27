@@ -27,6 +27,11 @@ public static class ActionNames
     public const string UserUnlock = "user.unlock";
     public const string InventoryReplenish = "inventory.replenish";
 
+    // Inventory & Stock Management flow — the remaining admin write paths beyond replenish.
+    public const string InventoryProvision = "inventory.provision";
+    public const string InventoryUpdateThreshold = "inventory.threshold.update";
+    public const string InventoryReconcile = "inventory.reconcile";
+
     // Order Management (Admin) flow #7 — proxies to kart-order-service's own admin-gated endpoints.
     public const string OrderCancel = "order.cancel";
     public const string OrderStatusUpdate = "order.status.admin_update";

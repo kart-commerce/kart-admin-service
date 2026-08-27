@@ -1,3 +1,4 @@
+using Kart.Shared.Observability;
 using KartAdminService.Api.Common;
 using KartAdminService.Api.Security;
 using KartAdminService.Application.Common.Models;
@@ -11,17 +12,28 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace KartAdminService.Api.Controllers;
 
-/// <summary>api-contract.yaml /admin/permission-grants* (ADM-1, ADM-2, ADM-3) — the permission-management meta-category.</summary>
+/// <summary>
+/// api-contract.yaml /admin/permission-grants* (ADM-1, ADM-2, ADM-3) — the permission-management
+/// meta-category. Issue/Revoke belong to the "Roles &amp; Permission Management (Admin)" flow
+/// (business-flows.md flow #15: Create Role/Assign Permissions/Assign Role to Staff maps to Issue,
+/// Update/Revoke Permission maps to Revoke). ListPermissionGrants is a read with no admin_actions
+/// audit row, so — same as every other controller's own read/write split (e.g. OrdersController's
+/// own doc comment) — it deliberately gets no Flow tag.
+/// </summary>
 [ApiController]
 [Route("v1/admin/permission-grants")]
 [Authorize(Policy = AuthenticationExtensions.AdminPolicy)]
 public sealed class PermissionGrantsController : AdminControllerBase
 {
-    private readonly ISender _sender;
+    private const string FlowName = "RolesPermissionManagementAdmin";
 
-    public PermissionGrantsController(ISender sender)
+    private readonly ISender _sender;
+    private readonly ILogger<PermissionGrantsController> _logger;
+
+    public PermissionGrantsController(ISender sender, ILogger<PermissionGrantsController> logger)
     {
         _sender = sender;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -48,6 +60,9 @@ public sealed class PermissionGrantsController : AdminControllerBase
         [FromHeader(Name = "Idempotency-Key")] Guid idempotencyKey,
         CancellationToken cancellationToken)
     {
+        using var flowScope = KartFlowContext.Push(FlowName);
+        _logger.LogInformation("Stage {Stage}: issue permission grant received (principal {PrincipalId}, category {Category})", "AdminPermissionGrantsControllerReceived", request.PrincipalId, request.Category);
+
         var command = new IssuePermissionGrantCommand(
             ActingPrincipalId,
             request.PrincipalId,
@@ -71,6 +86,9 @@ public sealed class PermissionGrantsController : AdminControllerBase
         [FromHeader(Name = "Idempotency-Key")] Guid idempotencyKey,
         CancellationToken cancellationToken)
     {
+        using var flowScope = KartFlowContext.Push(FlowName);
+        _logger.LogInformation("Stage {Stage}: revoke permission grant {GrantId} received", "AdminPermissionGrantsControllerReceived", grantId);
+
         var command = new RevokePermissionGrantCommand(ActingPrincipalId, grantId, ifMatch, idempotencyKey);
         var result = await _sender.Send(command, cancellationToken);
         return this.ToActionResult<PermissionGrantDto, PermissionGrantDto>(result, r => Ok(r));

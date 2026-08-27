@@ -69,8 +69,14 @@ public sealed class FakeIdentityAdminClient : IIdentityAdminClient
 public sealed class FakeInventoryServiceClient : IInventoryServiceClient
 {
     public Result ReplenishResult { get; set; } = Result.Success();
+    public Result ProvisionResult { get; set; } = Result.Success();
+    public Result UpdateThresholdResult { get; set; } = Result.Success();
+    public Result ReconcileResult { get; set; } = Result.Success();
 
     public Task<Result> ReplenishAsync(string sku, string warehouseId, int qtyAdded, string? reason, string idempotencyKey, CancellationToken cancellationToken) => Task.FromResult(ReplenishResult);
+    public Task<Result> ProvisionAsync(string warehouseId, string sku, int initialQty, int replenishmentThreshold, int targetStockingLevel, CancellationToken cancellationToken) => Task.FromResult(ProvisionResult);
+    public Task<Result> UpdateThresholdAsync(string warehouseId, string sku, int replenishmentThreshold, int targetStockingLevel, CancellationToken cancellationToken) => Task.FromResult(UpdateThresholdResult);
+    public Task<Result> ReconcileAsync(string warehouseId, string sku, int countedQty, string reason, CancellationToken cancellationToken) => Task.FromResult(ReconcileResult);
 }
 
 public sealed class FakeOrderServiceClient : IOrderServiceClient

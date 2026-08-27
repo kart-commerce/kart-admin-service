@@ -1050,6 +1050,143 @@ paths:
               schema: { $ref: '#/components/schemas/Problem' }
 
   # ---------------------------------------------------------------------
+  # Inventory & Stock Management flow — three more inventory-replenishment-category writes
+  # beyond replenish, proxying kart-inventory-service's own Implementation-Addendum endpoints.
+  # ---------------------------------------------------------------------
+  /admin/inventory/provision:
+    post:
+      operationId: provisionWarehouseStock
+      summary: Onboard a brand-new (warehouseId, sku) row.
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [warehouseId, sku, initialQty, replenishmentThreshold, targetStockingLevel]
+              properties:
+                warehouseId: { type: string }
+                sku: { type: string }
+                initialQty: { type: integer, minimum: 0 }
+                replenishmentThreshold: { type: integer, minimum: 0 }
+                targetStockingLevel: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Provisioned by Inventory Service.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '400':
+          description: Already provisioned, or invalid quantities/thresholds.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `inventory-replenishment` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/inventory/{warehouseId}/{sku}/threshold:
+    patch:
+      operationId: updateReplenishmentThreshold
+      summary: Update a warehouse/SKU's low-stock threshold and target stocking level.
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: sku
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [replenishmentThreshold, targetStockingLevel]
+              properties:
+                replenishmentThreshold: { type: integer, minimum: 0 }
+                targetStockingLevel: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Threshold updated by Inventory Service.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '404':
+          description: (warehouseId, sku) has never been provisioned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `inventory-replenishment` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  /admin/inventory/{warehouseId}/{sku}/reconcile:
+    post:
+      operationId: reconcileStock
+      summary: Overwrite AvailableQty to an admin-submitted physical count (Stock Audit/Reconciliation, Update Qty).
+      security:
+        - bearerAuth: [admin]
+      parameters:
+        - name: warehouseId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: sku
+          in: path
+          required: true
+          schema: { type: string }
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [countedQty, reason]
+              properties:
+                countedQty: { type: integer, minimum: 0 }
+                reason: { type: string }
+      responses:
+        '200':
+          description: Reconciled by Inventory Service; InventoryReconciled published with the signed variance.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminActionResult' }
+        '404':
+          description: (warehouseId, sku) has never been provisioned.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '403':
+          description: Caller lacks the coarse `Admin` role claim, or lacks a live `inventory-replenishment` grant.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+
+  # ---------------------------------------------------------------------
   # Order management (category `order-management`) — added for the "Order
   # Management (Admin)" flow. Proxies Order Service's own admin-gated write
   # API (kart-order-service contracts/api-contract.yaml). Reads (list,

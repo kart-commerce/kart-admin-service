@@ -114,7 +114,13 @@ public sealed class AdminActionExecutor
         // (Infrastructure catches the DB's unique-index violation and re-fetches the winning
         // row) — Application never needs to know the write provider's exception shape.
         var committed = await _actionRepository.AddAndCommitOrGetExistingAsync(action, cancellationToken);
-        _logger.LogInformation("Stage {Stage}: admin action {ActionId} ({Action}) persisted to admin_actions", "AdminActionPersisted", committed.ActionId, committed.Action);
+
+        _logger.LogInformation(
+            "Stage {Stage}: admin action {ActionId} ({Action}) persisted to admin_actions and completed, enqueued for outbox relay",
+            "AdminActionPersisted",
+            committed.ActionId,
+            committed.Action);
+
         return Result.Success(AdminActionResultDto.FromDomain(committed));
     }
 }

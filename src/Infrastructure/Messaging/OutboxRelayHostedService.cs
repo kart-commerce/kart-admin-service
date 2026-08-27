@@ -28,10 +28,9 @@ public sealed class OutboxRelayHostedService : BackgroundService
     private static readonly TimeSpan ReconnectDelay = TimeSpan.FromSeconds(10);
     private const int BatchSize = 50;
 
-    // Each completed flow's instrumentation pass adds its own action-name -> Flow entry here;
-    // action names not present in this map (coupons/users/inventory/permission-management, as of
-    // this comment) aren't tagged with a Flow yet, pending their own flow's pass, per the
-    // platform-wide standard's per-flow rollout.
+    // action names not present in this map (user.lock/user.unlock, as of this comment) aren't
+    // tagged with a Flow because "user-suspension" doesn't correspond to any named flow in
+    // business-flows.md — deliberately left unmapped rather than guessed.
     private static readonly Dictionary<string, string> ActionFlowNames = new()
     {
         [KartAdminService.Domain.Common.ActionNames.ProductCreate] = "ProductCatalogManagementAdmin",
@@ -49,6 +48,20 @@ public sealed class OutboxRelayHostedService : BackgroundService
         [KartAdminService.Domain.Common.ActionNames.OrderShippingAddressUpdate] = "OrderManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.OrderShipmentRequest] = "OrderManagementAdmin",
         [KartAdminService.Domain.Common.ActionNames.OrderFulfillmentExceptionResolve] = "OrderManagementAdmin",
+
+        // Inventory & Stock Management flow.
+        [KartAdminService.Domain.Common.ActionNames.InventoryReplenish] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryProvision] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryUpdateThreshold] = "InventoryStockManagement",
+        [KartAdminService.Domain.Common.ActionNames.InventoryReconcile] = "InventoryStockManagement",
+
+        // Offers, Coupons & Promotions Management (Admin) flow.
+        [KartAdminService.Domain.Common.ActionNames.CouponCreate] = "OffersCouponsPromotionsManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.CouponDeactivate] = "OffersCouponsPromotionsManagementAdmin",
+
+        // Roles & Permission Management (Admin) flow #15.
+        [KartAdminService.Domain.Common.ActionNames.GrantIssue] = "RolesPermissionManagementAdmin",
+        [KartAdminService.Domain.Common.ActionNames.GrantRevoke] = "RolesPermissionManagementAdmin",
     };
 
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
