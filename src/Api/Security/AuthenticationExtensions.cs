@@ -47,14 +47,14 @@ public static class AuthenticationExtensions
 
         return services;
     }
-    
+
     private static void SetJwtBearerOptions(JwtBearerOptions options)
     {
         // IMPORTANT: Disable claim type mapping on the handler itself
         // This helps to keep JWT claim names (like "sub") unchanged instead of converting to long XML URIs
         // Like "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier" instead of "sub"
         options.MapInboundClaims = false;
-        
+
 
         // Structured, through the same Serilog/OTel pipeline every other log line in this
         // service goes through (kart-conventions.md: "never string-concatenated messages") -
